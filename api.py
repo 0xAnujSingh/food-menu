@@ -1,20 +1,29 @@
+from logging import error, exception
+from sqlite3.dbapi2 import Error
 from flask import Flask, request
 from app import MenuItem, Menu
 
 app = Flask(__name__)
 
-@app.route('/lists', methods = ['POST'])
-def createList():
-    data = request.json
 
-    title = data['title']
+@app.route('/menu', methods = ['POST'])
+def createMenu():
+    try:
+        data = request.json
 
-    newList = Menu.new(title)
+        title = data['title']
 
-    return newList.toJSON()
+        newMenu = Menu.new(title)
 
-@app.route('/lists')
-def getAllMenuLists():
+        return newMenu.toJSON()
+    except Exception as err:
+        return {
+            "error" : str(err)
+            }
+         
+
+@app.route('/menu')
+def getAllMenu():
     lists = Menu.listAllMenu()
     result = []
 
@@ -25,24 +34,34 @@ def getAllMenuLists():
         "lists": result
         }
 
-@app.route('/lists/<menuId>')
-def getListById(menuId):
-    lists = Menu.menuById(menuId)
-    result = []
+@app.route('/menu/<menuId>')
+def getMenuById(menuId):
+    try:
+        menu = Menu.menuById(menuId)
 
-    for li in lists:
-        result.append(li.toJSON())
+        return {
+            "menu" : menu.toJSON()
+        }
+    except Exception as err: 
+        return {
+            "err" : str(err)
+            }
 
-    return {
-        "menuId" : result
-    }
-
-@app.route('/lists/<menuId>/item', methods = ['POST'])
+@app.route('/menu/<menuId>/item', methods = ['POST'])
 def createItem(menuId):
-    item = MenuItem.new(menuId)
-    return item.toJSON()
+    try:
+        data = request.json
+        title = data['title']
+        price = data['price']
+        item = MenuItem.new(menuId, title, price)
 
-@app.route('/lists/<menuId>/item')
+        return item.toJSON()
+    except Exception as err:
+        return {
+            "err" : str(err)
+        }
+
+@app.route('/menu/<menuId>/item')
 def getAllItems(menuId):
     item = MenuItem.findByMenu(menuId)
     result = []
@@ -53,18 +72,21 @@ def getAllItems(menuId):
         "menuId" : result
         }
 
-@app.route('/lists/<menuId>/item/<id>')
-def getItemById(menuId,id):
-    item = MenuItem.findById(menuId, id)
-    result = []
+@app.route('/menu/<menuId>/item/<id>')
+def getItemById(menuId, id):
+    try:
+        item = MenuItem.findById(id)
 
-    for i in item:
-        result.append(i.toJSON())
+        return {
+            "item" : item.toJSON()
+        }
+    except Exception as err:
+        return {
+            "err" : str(err)
+        }
 
-    return {
-        "menuId" : menuId,
-        "id" : id
-    }
+if __name__ == "__main__":
+    app.run()
 
 
 

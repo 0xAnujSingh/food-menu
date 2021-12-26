@@ -8,71 +8,72 @@ class MenuItem:
     self.price = price
     self.menuId = menuId
 
-## store a new item
-@classmethod
-def new(cls, menuId, itemName):
-  cursor = conn.cursor()
-  data = None
+  def toJSON(self):
+    return {
+      "itemId" : self.id,
+      "itemName" : self.name,
+      "price" : self.price,
+      "menuId" : self.menuId
+    }
 
-  try:
-    cursor.execute("INSERT INTO item(`menuId, itemName`) VALUES (?, ?);", (menuId, itemName))
-    cursor.execute("SELECT `id`, `name`, `price`, `menuId` FROM `item` WHERE `id` = ?", (cursor.lastrowid, ))
-    data = cursor.fetchone()
+  ## store a new item
+  @classmethod
+  def new(cls, menuId, name, price):
+    cursor = conn.cursor()
+    data = None
 
-    conn.commmit()
-  except:
-    raise Exception("Item with this name is already exists")
-  finally:
-    cursor.close()
+    try:
+      cursor.execute("INSERT INTO item(`menuId`, `name`,`price`) VALUES (?, ?, ?);", (menuId, name, price, ))
+      cursor.execute("SELECT `id`, `name`, `price`, `menuId` FROM `item` WHERE `id` = ?", (cursor.lastrowid, ))
+      data = cursor.fetchone()
 
-  return cls(data[0], data[1], data[2], data[3])
+      conn.commit()
+    except Exception as err:
+      raise err
+    finally:
+      cursor.close()
 
-@classmethod
-def findByMenu(cls, menuId):
+    return cls(data[0], data[1], data[2], data[3])
 
-  cursor = conn.cursor()
-  result = []
-  data = None
+  @classmethod
+  def findByMenu(cls, menuId):
 
-  try:
-    cursor.execute("SELECT `id`, `name`, `price`, `menuId` FROM `item` WHERE `menuId` = ?;",(menuId, ))
-    data = cursor.fetchall()
-  except:
-    raise Exception("Error : unable to fetch data")
-  finally:
-    cursor.close()
+    cursor = conn.cursor()
+    result = []
+    data = None
 
-  for item in data:
-    result.append(cls(item[0], item[1], item[2], item[3]))
+    try:
+      cursor.execute("SELECT `id`, `name`, `price`, `menuId` FROM `item` WHERE `menuId` = ?;",(menuId, ))
+      data = cursor.fetchall()
+    except:
+      raise Exception("Error : unable to fetch data")
+    finally:
+      cursor.close()
 
-  return result
+    for item in data:
+      result.append(cls(item[0], item[1], item[2], item[3]))
 
-@classmethod
-def findById(cls, id):
-  cursor = conn.cursor()
-  data = None
+    return result
 
-  try:
-    cursor.execute("SELECT `id`, `name`, `price`, `menuId` FROM `item` WHERE `id` = ?;", (id, ))
-    data = cursor.fetchone()
+  @classmethod
+  def findById(cls, id):
+    cursor = conn.cursor()
+    data = None
 
-  except:
-    raise Exception("Something went wrong while getting item")
-  finally:
-    cursor.close()
+    try:
+      cursor.execute("SELECT `id`, `name`, `price`, `menuId` FROM `item` WHERE `id` = ?;", (id, ))
+      data = cursor.fetchone()
 
-  if data is None:
-    return None
+    except Exception as err:
+      return err
+    finally:
+      cursor.close()
 
-  return cls(data[0], data[1], data[2], data[3])
+    if data is None:
+      return None
 
-def toJSON(self):
-  return {
-    "itemId" : self.id,
-    "itemName" : self.name,
-    "price" : self.price,
-    "menuId" : self.menuId
-  }
+    return cls(data[0], data[1], data[2], data[3])
+
 
 
 
@@ -88,13 +89,13 @@ class Menu:
     data = None
 
     try:
-      cursor.execute("INSERT INTO menu(`title`) VALUES (?);", (title))
+      cursor.execute("INSERT INTO menu(`title`) VALUES (?);", (title, ))
       cursor.execute("SELECT `menuId`, `title` FROM `menu` WHERE `menuid` = ?", (cursor.lastrowid, ))
       data = cursor.fetchone()
 
-      conn.commmit()
-    except:
-      raise Exception("Item with this name is already exists")
+      conn.commit()
+    except Exception as e:
+      raise e
     finally:
       cursor.close()
 
