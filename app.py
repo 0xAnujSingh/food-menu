@@ -1,6 +1,71 @@
 import sqlite3
 from db import conn
 
+class Restaurant:
+  def __init__(self, rId, title):
+    self.rId = rId
+    self.title = title
+
+  def toJSON(self):
+    return {
+      "rId" : self.rId,
+      "title" : self.title
+    }
+
+  @classmethod
+  def new(cls, title):
+    cursor = conn.cursor()
+    data = None
+
+    try:
+      cursor.execute("INSERT INTO restaurant(`title`) VALUES (?);", (title, ))
+      cursor.execute("SELECT `rId`, `title` FROM `restaurant` WHERE `rId` = ?", (cursor.lastrowid, ))
+      data = cursor.fetchone()
+
+      conn.commit()
+    except Exception as e:
+      raise e
+    finally:
+      cursor.close()
+
+    return cls(data[0], data[1])
+
+  @classmethod
+  def listAllRestaurant(cls):
+    cursor = conn.cursor()
+    data = None
+    result = []
+    try:
+      cursor.execute("SELECT * FROM `restaurant`")
+      data = cursor.fetchall()
+
+      conn.commit()
+    except Exception as err:
+      raise err
+    finally:
+      cursor.close()
+    
+    for i in data:
+      result.append(cls(i[0], i[1]))
+
+    return result
+
+  @classmethod
+  def listById(cls, rId):
+    cursor = conn.cursor()
+    data = None
+
+    try:
+      cursor.execute("SELECT `rId`, `title` FROM `restaurant` WHERE `rId` = ?;", (rId, ))
+      data = cursor.fetchone()
+
+    except Exception as e:
+      raise e
+    finally:
+      cursor.close()
+
+    return cls(data[0], data[1])
+
 class MenuItem:
   def __init__(self, itemId, itemName, price, menuId):
     self.id = itemId
@@ -78,18 +143,19 @@ class MenuItem:
 
 
 class Menu:
-  def __init__(self, menuId, title):
+  def __init__(self, menuId, title, rId):
     self.name =[]
     self.menuId = menuId
     self.title = title
+    self.rId = rId
 
   @classmethod
-  def new(cls, title):
+  def new(cls, title, rId):
     cursor = conn.cursor()
     data = None
 
     try:
-      cursor.execute("INSERT INTO menu(`title`) VALUES (?);", (title, ))
+      cursor.execute("INSERT INTO menu(`title`, `rId`) VALUES (?, ?);", (title, rId))
       cursor.execute("SELECT `menuId`, `title` FROM `menu` WHERE `menuid` = ?", (cursor.lastrowid, ))
       data = cursor.fetchone()
 
@@ -101,7 +167,6 @@ class Menu:
 
     return cls(data[0], data[1])
 
-
   @classmethod
   def listAllMenu(cls):
     cursor = conn.cursor()
@@ -109,7 +174,7 @@ class Menu:
     result = []
 
     try:
-      cursor.execute("SELECT * FROM `menu`")
+      cursor.execute("SELECT `menuId`, `title`, `rId` FROM `menu`")
       data = cursor.fetchall()
 
       conn.commit()
@@ -119,7 +184,7 @@ class Menu:
       cursor.close()
 
     for item in data:
-      result.append(cls(item[0], item[1]))
+      result.append(cls(item[0], item[1], item[2]))
 
     return result
 
@@ -129,7 +194,7 @@ class Menu:
     data = None
 
     try:
-      cursor.execute("SELECT * FROM `menu` WHERE `menuId` = ?", (menuId, ))
+      cursor.execute("SELECT `menuId`, `title`, `rId` FROM `menu` WHERE `menuId` = ?", (menuId, ))
       data = cursor.fetchone()
 
     except:
@@ -140,12 +205,33 @@ class Menu:
     if data is None:
       raise Exception("Not found")
 
-    return cls(data[0], data[1])
+    return cls(data[0], data[1], data[2])
+
+  @classmethod
+  def getByResaurantId(cls, rId):
+    cursor = conn.cursor()
+    data = None
+    result = []
+
+    try:
+      cursor.execute("SELECT `menuId`, `title`, `rId` FROM `menu` WHERE `rId` = ?;", (rId, ))
+      data = cursor.fetchall()
+    except:
+      raise Exception("Error : unable to fetch data")
+    finally:
+      cursor.close()
+    
+    for i in data:
+      result.append(cls(i[0], i[1], i[2]))
+
+    return result
+
 
   def toJSON(self):
     return {
       "menuId" : self.menuId,
-      "title" : self.title
+      "title" : self.title,
+      "rId": self.rId
     }
 
   @property
