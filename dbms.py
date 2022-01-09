@@ -18,8 +18,9 @@ try:
     CREATE TABLE menu (
         menuId integer primary key autoincrement not null,
         rId integer not null,
-        title varchar(120) not null unique,
-        FOREIGN KEY (rId) REFERENCES restaurant(rId)
+        title varchar(120) not null,
+        FOREIGN KEY (rId) REFERENCES restaurant(rId),
+        UNIQUE(rId, title)
     );
     """)
 

@@ -156,7 +156,7 @@ class Menu:
 
     try:
       cursor.execute("INSERT INTO menu(`title`, `rId`) VALUES (?, ?);", (title, rId))
-      cursor.execute("SELECT `menuId`, `title` FROM `menu` WHERE `menuid` = ?", (cursor.lastrowid, ))
+      cursor.execute("SELECT `menuId`, `title`, `rId` FROM `menu` WHERE `menuid` = ?", (cursor.lastrowid, ))
       data = cursor.fetchone()
 
       conn.commit()
@@ -165,7 +165,7 @@ class Menu:
     finally:
       cursor.close()
 
-    return cls(data[0], data[1])
+    return cls(data[0], data[1], data[2])
 
   @classmethod
   def listAllMenu(cls):

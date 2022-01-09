@@ -1,8 +1,13 @@
 from logging import exception
 from flask import Flask, request
+from flask.templating import render_template
 from app import MenuItem, Menu, Restaurant
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='./static', template_folder="./templates")
+
+@app.route('/', methods = ['GET'])
+def index():
+    return render_template('index.html')
 
 @app.route('/restaurant', methods = ['POST'])
 def createRestaurant():
@@ -19,12 +24,12 @@ def createRestaurant():
 
 @app.route('/restaurant')
 def listAllRestaurant():
-    Restaurants = Restaurant.listAllRestaurant()
+    restaurants = Restaurant.listAllRestaurant()
     result = []
-    for li in Restaurants:
+    for li in restaurants:
         result.append(li.toJSON())
     return {
-        "Restaurants" : result
+        "restaurants" : result
     }
 
 @app.route('/restaurant/<rId>')
@@ -66,7 +71,6 @@ def createMenu():
         return {
             "error" : str(err)
             }
-         
 
 @app.route('/menu')
 def getAllMenu():
@@ -115,7 +119,7 @@ def getAllItems(menuId):
         result.append(i.toJSON())
 
     return {
-        "menuId" : result
+        "items" : result
         }
 
 @app.route('/menu/<menuId>/item/<id>')
