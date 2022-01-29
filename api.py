@@ -1,4 +1,3 @@
-from logging import exception
 from flask import Flask, request
 from flask.templating import render_template
 from app import MenuItem, Menu, Restaurant
